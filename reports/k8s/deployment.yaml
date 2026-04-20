@@ -1,0 +1,96 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: weekly-report
+  namespace: default
+  labels:
+    app: weekly-report
+    version: v1
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: weekly-report
+  template:
+    metadata:
+      labels:
+        app: weekly-report
+        version: v1
+    spec:
+      serviceAccountName: weekly-report-sa
+      containers:
+      - name: weekly-report
+        image: YOUR_AWS_ACCOUNT_ID.dkr.ecr.ap-northeast-2.amazonaws.com/weekly-report:667a0df4beccdd631269c8ca23a166da20a28bda
+        ports:
+        - containerPort: 8000
+          name: http
+        env:
+        - name: DEBUG
+          value: "false"
+        - name: HOST
+          value: "0.0.0.0"
+        - name: PORT
+          value: "8000"
+        - name: USE_SECRETS_MANAGER
+          value: "true"
+        - name: DB_SECRET_NAME
+          value: "one-rds-credentials"
+        - name: APP_CONFIG_SECRET_NAME
+          value: "weekly-report/app-config"
+        - name: DB_HOST
+          value: "one-postgres.cricim2es6bi.ap-northeast-2.rds.amazonaws.com"
+        - name: DB_PORT
+          value: "5432"
+        - name: DB_NAME
+          value: "onedb"
+        - name: DB_USER
+          value: "oneuser"
+        - name: AWS_REGION
+          value: "ap-northeast-2"
+        - name: SES_SENDER_EMAIL
+          value: "noreply@YOUR_DOMAIN"
+        - name: API_BASE_URL
+          value: "https://YOUR_API_DOMAIN"
+        # OpenTelemetry
+        - name: OTEL_SERVICE_NAME
+          value: "weekly-report"
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: "http://jaeger-collector.istio-system.svc.cluster.local:4317"
+        - name: APP_VERSION
+          value: "1.0.0"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "200m"
+          limits:
+            memory: "512Mi"
+            cpu: "450m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 180
+          periodSeconds: 30
+          timeoutSeconds: 15
+          failureThreshold: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 90
+          periodSeconds: 15
+          timeoutSeconds: 15
+          failureThreshold: 10
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false
+          runAsNonRoot: true
+          runAsUser: 1000
+          capabilities:
+            drop:
+              - ALL

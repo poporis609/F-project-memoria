@@ -1,0 +1,21 @@
+---
+# Phoenix ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: phoenix-config
+  labels:
+    app: phoenix
+data:
+  # Phoenix 서버 설정
+  PHOENIX_WORKING_DIR: "/data"
+  
+  # 데이터 보존 기간 (7일)
+  PHOENIX_RETENTION_DAYS: "7"
+  
+  # 로그 레벨
+  PHOENIX_LOG_LEVEL: "INFO"
+  
+  # OTLP 설정
+  PHOENIX_GRPC_PORT: "4317"
+  PHOENIX_HTTP_PORT: "6006"

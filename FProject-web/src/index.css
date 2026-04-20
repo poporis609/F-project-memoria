@@ -1,0 +1,284 @@
+@import url('https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700;800&family=Nanum+Pen+Script&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ======================================================
+   BASE THEME (고요한 밤의 도서관 - 기존 그대로)
+   ====================================================== */
+@layer base {
+  :root {
+    /* Vintage Library Color Palette - Brightened for readability */
+    --background: 30 25% 18%;
+    --foreground: 38 30% 90%;
+
+    --card: 32 30% 24%;
+    --card-foreground: 38 30% 90%;
+
+    --popover: 32 28% 22%;
+    --popover-foreground: 38 30% 90%;
+
+    --primary: 40 50% 72%;
+    --primary-foreground: 30 30% 12%;
+
+    --secondary: 32 28% 28%;
+    --secondary-foreground: 38 28% 88%;
+
+    --muted: 32 22% 26%;
+    --muted-foreground: 35 22% 62%;
+
+    --accent: 150 22% 30%;
+    --accent-foreground: 38 28% 92%;
+
+    --destructive: 0 55% 45%;
+    --destructive-foreground: 38 28% 92%;
+
+    --border: 32 25% 35%;
+    --input: 32 28% 32%;
+    --ring: 40 50% 55%;
+
+    --radius: 0.5rem;
+
+    /* Custom Vintage Tokens */
+    --sepia: 40 48% 85%;
+    --aged-paper: 42 45% 94%;
+    --ink: 20 45% 15%;
+    --leather: 22 38% 22%;
+    --gold: 45 65% 58%;
+    --dark-green: 150 28% 28%;
+    --wood: 22 42% 26%;
+    --bookmark: 8 50% 42%;
+
+    --paper-highlight: 45 50% 97%;
+    --paper-shadow: 35 30% 85%;
+
+    /* Fonts */
+    --font-serif: 'Nanum Myeongjo', serif;
+    --font-handwriting: 'Nanum Pen Script', cursive;
+
+    --sidebar-background: 25 40% 15%;
+    --sidebar-foreground: 35 25% 85%;
+    --sidebar-primary: 35 45% 60%;
+    --sidebar-primary-foreground: 35 30% 10%;
+    --sidebar-accent: 25 35% 22%;
+    --sidebar-accent-foreground: 35 25% 85%;
+    --sidebar-border: 25 30% 25%;
+    --sidebar-ring: 35 45% 50%;
+  }
+}
+
+/* ======================================================
+   DAY THEME (활기찬 낮의 도서관 - 추가)
+   ====================================================== */
+@layer base {
+  [data-theme="day-library"] {
+    --background: 42 45% 96%;
+    --foreground: 25 30% 18%;
+
+    --card: 42 45% 98%;
+    --card-foreground: 25 30% 18%;
+
+    --popover: 42 45% 97%;
+    --popover-foreground: 25 30% 18%;
+
+    --primary: 35 60% 45%;
+    --primary-foreground: 40 40% 96%;
+
+    --secondary: 40 35% 90%;
+    --secondary-foreground: 25 30% 18%;
+
+    --muted: 40 30% 88%;
+    --muted-foreground: 25 25% 45%;
+
+    --accent: 150 30% 35%;
+    --accent-foreground: 40 40% 96%;
+
+    --border: 35 30% 80%;
+    --input: 35 30% 85%;
+    --ring: 35 60% 45%;
+
+    /* Paper & ink inversion */
+    --aged-paper: 45 45% 98%;
+    --paper-highlight: 45 50% 99%;
+    --paper-shadow: 35 25% 90%;
+    --ink: 25 35% 20%;
+    --leather: 30 30% 65%;
+    --wood: 30 35% 55%;
+    --gold: 40 70% 45%;
+  }
+}
+
+/* ======================================================
+   GLOBAL BASE
+   ====================================================== */
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-serif);
+    transition: background-color 0.4s ease, color 0.4s ease;
+    font-size: calc(1rem + 1px) !important;
+  }
+
+  /*사이드바 버튼 텍스트 크기 조정*/
+  .text-xs {
+    font-size: calc(0.75rem + 3px) !important;
+  }
+
+  .text-sm {
+    font-size: calc(0.875rem + 0.5px) !important;
+  }
+
+  .text-lg {
+    font-size: calc(1.125rem + 0.5px) !important;
+  }
+
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-serif);
+    font-weight: 700;
+  }
+
+  .font-handwriting {
+    font-size: calc(1.4rem + 1px) !important;
+  }
+}
+
+/* ======================================================
+   COMPONENTS (기존 그대로)
+   ====================================================== */
+@layer components {
+  .paper-texture {
+    background: linear-gradient(
+      180deg,
+      hsl(var(--paper-highlight)) 0%,
+      hsl(var(--aged-paper)) 15%,
+      hsl(var(--aged-paper)) 85%,
+      hsl(var(--paper-shadow)) 100%
+    );
+    position: relative;
+  }
+
+  .paper-texture::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+  }
+
+  .wood-texture {
+    background: linear-gradient(
+      90deg,
+      hsl(var(--wood)) 0%,
+      hsl(25 45% 25%) 20%,
+      hsl(var(--wood)) 40%,
+      hsl(25 45% 24%) 60%,
+      hsl(var(--wood)) 80%,
+      hsl(25 45% 23%) 100%
+    );
+  }
+
+  .book-cover {
+    background: linear-gradient(
+      135deg,
+      hsl(var(--leather)) 0%,
+      hsl(25 38% 20%) 50%,
+      hsl(var(--leather)) 100%
+    );
+    box-shadow: var(--shadow-book);
+  }
+
+  .handwriting {
+    font-family: var(--font-handwriting);
+    font-size: 1.4rem;
+    line-height: 2.3;
+    color: hsl(var(--ink));
+    letter-spacing: 0.025em;
+  }
+
+  .gold-accent {
+    color: hsl(var(--gold));
+    text-shadow: 0 0 10px hsl(var(--gold) / 0.3);
+  }
+}
+
+/* ======================================================
+   UTILITIES & ANIMATIONS (기존 그대로)
+   ====================================================== */
+@layer utilities {
+  .warm-glow {
+    box-shadow:
+      0 0 60px hsl(35 50% 30% / 0.3),
+      0 0 100px hsl(35 50% 25% / 0.2);
+  }
+}
+
+@keyframes inkFade {
+  from { opacity: 0; filter: blur(2px); }
+  to { opacity: 1; filter: blur(0); }
+}
+
+.animate-book-open {
+  animation: inkFade 0.8s ease-out forwards;
+}
+
+/* Index 페이지 헤더 스타일 - 고정 크기 */
+.header-title {
+  font-size: 3.5rem !important;
+  font-family: 'Nanum Myeongjo', serif !important;
+  font-weight: 700 !important;
+}
+
+.header-subtitle {
+  font-size: 2.5rem !important;
+  font-family: 'Nanum Pen Script', cursive !important;
+}
+
+/* ======================================================
+   SCROLLBAR STYLES (스크롤바 화살표 제거)
+   ====================================================== */
+::-webkit-scrollbar-button {
+  display: none !important;
+  height: 0 !important;
+  width: 0 !important;
+}
+
+/* ======================================================
+   FILM EFFECTS (필름 노이즈 효과)
+   ====================================================== */
+.film-grain {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url('https://www.transparenttextures.com/patterns/stardust.png');
+  opacity: 0.08;
+  pointer-events: none;
+  z-index: 50;
+  mix-blend-mode: overlay;
+}
+
+/* 커스텀 스크롤바 */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(139, 90, 43, 0.05);
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(139, 90, 43, 0.3);
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(139, 90, 43, 0.5);
+}

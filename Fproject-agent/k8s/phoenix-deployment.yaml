@@ -1,0 +1,78 @@
+---
+# Phoenix Server Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: phoenix-server
+  labels:
+    app: phoenix
+    component: server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: phoenix
+      component: server
+  template:
+    metadata:
+      labels:
+        app: phoenix
+        component: server
+    spec:
+      containers:
+        - name: phoenix
+          image: arizephoenix/phoenix:latest
+          ports:
+            - name: ui
+              containerPort: 6006
+            - name: otlp-grpc
+              containerPort: 4317
+          env:
+            - name: PHOENIX_SQL_DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: phoenix-db-secret
+                  key: database-url
+            - name: PHOENIX_WORKING_DIR
+              value: /data
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
+          volumeMounts:
+            - name: phoenix-data
+              mountPath: /data
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 6006
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 6006
+            initialDelaySeconds: 5
+            periodSeconds: 5
+      volumes:
+        - name: phoenix-data
+          persistentVolumeClaim:
+            claimName: phoenix-data-pvc
+---
+# Phoenix Data PVC
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: phoenix-data-pvc
+  labels:
+    app: phoenix
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: gp2
+  resources:
+    requests:
+      storage: 10Gi

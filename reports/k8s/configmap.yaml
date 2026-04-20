@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: weekly-report-config
+  namespace: default
+data:
+  db-secret-name: "one-rds-credentials"
+  app-config-secret-name: "weekly-report/app-config"
+  aws-region: "ap-northeast-2"
+  ses-sender-email: "noreply@YOUR_DOMAIN"
+  api-base-url: "https://YOUR_API_DOMAIN"

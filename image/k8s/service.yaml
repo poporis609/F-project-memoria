@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: image-generator-service
+  namespace: default
+  labels:
+    app: image-generator
+spec:
+  type: ClusterIP
+  selector:
+    app: image-generator
+  ports:
+    - port: 3000
+      targetPort: 3000
+      protocol: TCP

@@ -1,0 +1,95 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: diary-agent-sa
+  namespace: default
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::YOUR_AWS_ACCOUNT_ID:role/DiaryOrchestratorAgentRole
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: agent-api-service
+  namespace: default
+spec:
+  selector:
+    app: agent-api
+  ports:
+    - protocol: TCP
+      port: 8000
+      targetPort: 8000
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: agent-api-deployment
+  namespace: default
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: agent-api
+  template:
+    metadata:
+      labels:
+        app: agent-api
+    spec:
+      serviceAccountName: diary-agent-sa
+      nodeSelector:
+        karpenter.sh/nodepool: default
+      containers:
+        - name: agent-api
+          image: YOUR_AWS_ACCOUNT_ID.dkr.ecr.ap-northeast-2.amazonaws.com/diary-orchestrator-agent:aaa4937d1c1c1426927897ae6fb2cdd1bf374c7a
+          ports:
+            - containerPort: 8000
+          env:
+            - name: PORT
+              value: "8000"
+            - name: HOST
+              value: "0.0.0.0"
+            - name: AWS_REGION
+              value: "ap-northeast-2"
+            - name: SECRET_NAME
+              value: "agent-secret"
+            - name: ALLOWED_ORIGINS
+              value: "https://YOUR_WEB_DOMAIN,https://YOUR_DOMAIN,https://YOUR_WEB_DOMAIN,https://YOUR_API_DOMAIN"
+            - name: DEBUG
+              value: "False"
+            # Phoenix Tracing 설정
+            - name: PHOENIX_ENDPOINT
+              value: "http://phoenix-service:6006"
+            - name: PHOENIX_BASE_URL
+              value: "http://phoenix-service:6006"
+            - name: PHOENIX_PROJECT_NAME
+              value: "diary-agent"
+            - name: TRACING_ENABLED
+              value: "true"
+            - name: TRACE_SAMPLE_RATE
+              value: "1.0"
+            # Phoenix Evaluation 설정
+            - name: EVALUATION_ENABLED
+              value: "true"
+            - name: EVALUATOR_MODEL
+              value: "anthropic.claude-3-haiku-20240307-v1:0"
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1024Mi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /agent/health
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 30
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /agent/health
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 5

@@ -1,0 +1,86 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: journal-api
+  namespace: default
+  labels:
+    app: journal-api
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: journal-api
+  template:
+    metadata:
+      labels:
+        app: journal-api
+    spec:
+      serviceAccountName: journal-api-sa
+      nodeSelector:
+        karpenter.sh/nodepool: default
+      containers:
+      - name: journal-api
+        image: YOUR_AWS_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/journal-api:v71
+        ports:
+        - containerPort: 8000
+        env:
+        - name: AWS_REGION
+          value: "ap-northeast-2"
+        - name: ALLOWED_ORIGINS
+          value: "https://YOUR_WEB_DOMAIN,https://YOUR_DOMAIN,https://YOUR_API_DOMAIN,https://YOUR_WEB_DOMAIN"
+        - name: DEBUG
+          value: "False"
+        - name: ENVIRONMENT
+          value: "production"
+        - name: S3_BUCKET_NAME
+          value: "fproject-s3-1234567"
+        - name: AGENT_API_URL
+          value: "http://agent-api-service:8000"
+        # OpenTelemetry 설정
+        - name: OTEL_SERVICE_NAME
+          value: "journal-api"
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: "http://jaeger.istio-system.svc.cluster.local:4317"
+        - name: APP_VERSION
+          value: "1.0.0"
+        livenessProbe:
+          httpGet:
+            path: /journal/health
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /journal/health
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "200m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: journal-api-service
+  namespace: default
+spec:
+  selector:
+    app: journal-api
+  ports:
+    - protocol: TCP
+      port: 8000
+      targetPort: 8000
+  type: ClusterIP
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: journal-api-sa
+  namespace: default
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::YOUR_AWS_ACCOUNT_ID:role/journal-api-secrets-role

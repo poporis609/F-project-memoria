@@ -1,0 +1,150 @@
+import boto3
+import logging
+from datetime import date
+from typing import Optional
+from botocore.exceptions import ClientError
+
+# config.py에서 설정 가져오기
+from config import AWS_REGION, S3_BUCKET_NAME
+
+logger = logging.getLogger(__name__)
+
+class S3Service:
+    def __init__(self):
+        # IAM Role (IRSA)을 사용하므로 자격증명 불필요
+        self.s3_client = boto3.client(
+            's3',
+            region_name=AWS_REGION
+        )
+        self.bucket_name = S3_BUCKET_NAME
+        
+        if not self.bucket_name:
+            raise ValueError("S3_BUCKET_NAME이 설정되지 않았습니다.")
+        
+        logger.info(f"S3Service initialized with bucket: {self.bucket_name}")
+    
+    def generate_s3_key(self, user_id: str, record_date: date) -> str:
+        """S3 키를 생성합니다. 형식: {user_id}/history/{YYYY}/{MM}/{DD}/{YYYY-MM-DD}.txt"""
+        year = record_date.strftime("%Y")
+        month = record_date.strftime("%m")
+        day = record_date.strftime("%d")
+        date_str = record_date.strftime("%Y-%m-%d")
+        return f"{user_id}/history/{year}/{month}/{day}/{date_str}.txt"
+    
+    def save_history_to_s3(self, user_id: str, content: str, record_date: date, tags: Optional[list] = None) -> str:
+        """
+        히스토리를 S3에 텍스트 파일로 저장합니다.
+        
+        Args:
+            user_id: 사용자 ID
+            content: 저장할 내용
+            record_date: 기록 날짜
+            tags: 태그 리스트 (선택사항)
+            
+        Returns:
+            str: S3 텍스트 파일 URL
+        """
+        s3_key = self.generate_s3_key(user_id, record_date)
+        
+        # 텍스트 파일 내용 구성
+        file_content = f"날짜: {record_date}\n"
+        file_content += f"사용자: {user_id}\n"
+        if tags:
+            file_content += f"태그: {', '.join(tags)}\n"
+        file_content += f"\n내용:\n{content}"
+        
+        try:
+            self.s3_client.put_object(
+                Bucket=self.bucket_name,
+                Key=s3_key,
+                Body=file_content.encode('utf-8'),
+                ContentType='text/plain; charset=utf-8'
+            )
+            logger.info(f"S3에 히스토리 저장 완료: {s3_key}")
+            
+            # S3 URL 생성
+            text_url = f"https://{self.bucket_name}.s3.{AWS_REGION}.amazonaws.com/{s3_key}"
+            return text_url
+        except ClientError as e:
+            logger.error(f"S3 저장 실패: {e}")
+            raise Exception(f"S3 저장 중 오류가 발생했습니다: {str(e)}")
+    
+    def get_history_from_s3(self, s3_key: str) -> str:
+        """
+        S3에서 히스토리 파일을 읽어옵니다.
+        
+        Args:
+            s3_key: S3 키
+            
+        Returns:
+            str: 파일 내용
+        """
+        try:
+            response = self.s3_client.get_object(Bucket=self.bucket_name, Key=s3_key)
+            content = response['Body'].read().decode('utf-8')
+            return content
+        except ClientError as e:
+            logger.error(f"S3 읽기 실패: {e}")
+            raise Exception(f"S3에서 파일을 읽는 중 오류가 발생했습니다: {str(e)}")
+    
+    def delete_history_from_s3(self, s3_key: str) -> bool:
+        """
+        S3에서 히스토리 파일을 삭제합니다.
+        
+        Args:
+            s3_key: S3 키
+            
+        Returns:
+            bool: 삭제 성공 여부
+        """
+        try:
+            self.s3_client.delete_object(Bucket=self.bucket_name, Key=s3_key)
+            logger.info(f"S3에서 히스토리 삭제 완료: {s3_key}")
+            return True
+        except ClientError as e:
+            logger.error(f"S3 삭제 실패: {e}")
+            return False
+    
+    def check_file_exists(self, s3_key: str) -> bool:
+        """
+        S3에 파일이 존재하는지 확인합니다.
+        
+        Args:
+            s3_key: S3 키
+            
+        Returns:
+            bool: 파일 존재 여부
+        """
+        try:
+            self.s3_client.head_object(Bucket=self.bucket_name, Key=s3_key)
+            return True
+        except ClientError:
+            return False
+    
+    def extract_s3_key_from_url(self, s3_url: str) -> str:
+        """
+        S3 URL에서 키를 추출합니다.
+        
+        Args:
+            s3_url: S3 URL (예: https://bucket.s3.region.amazonaws.com/key)
+            
+        Returns:
+            str: S3 키
+        """
+        # URL에서 키 부분만 추출
+        # 형식: https://{bucket}.s3.{region}.amazonaws.com/{key}
+        if not s3_url:
+            return ""
+        
+        try:
+            # URL을 '/'로 분할하여 키 부분 추출
+            parts = s3_url.split('.amazonaws.com/')
+            if len(parts) > 1:
+                return parts[1]
+            return ""
+        except Exception as e:
+            logger.error(f"S3 URL 파싱 실패: {e}")
+            return ""
+
+# 싱글톤 인스턴스
+s3_service = S3Service()

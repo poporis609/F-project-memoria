@@ -1,0 +1,42 @@
+---
+# Phoenix Server Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: phoenix-service
+  labels:
+    app: phoenix
+    component: server
+spec:
+  type: ClusterIP
+  selector:
+    app: phoenix
+    component: server
+  ports:
+    - name: ui
+      port: 6006
+      targetPort: 6006
+      protocol: TCP
+    - name: otlp-grpc
+      port: 4317
+      targetPort: 4317
+      protocol: TCP
+---
+# PostgreSQL Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: phoenix-postgres
+  labels:
+    app: phoenix
+    component: postgres
+spec:
+  type: ClusterIP
+  selector:
+    app: phoenix
+    component: postgres
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: 5432
+      protocol: TCP

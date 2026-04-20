@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: image-generator
+  namespace: default
+  labels:
+    app: image-generator
+    version: v1
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: image-generator
+  template:
+    metadata:
+      labels:
+        app: image-generator
+        version: v1
+    spec:
+      serviceAccountName: library-service-account
+      containers:
+        - name: image-generator
+          image: YOUR_AWS_ACCOUNT_ID.dkr.ecr.ap-northeast-2.amazonaws.com/image-generator-api:950014508ab2385cf929f444eabaddacd4deb859
+          ports:
+            - containerPort: 3000
+          env:
+            - name: PORT
+              value: "3000"
+            - name: BASE_PATH
+              value: "/image"
+            - name: AWS_REGION
+              value: "ap-northeast-2"
+            - name: S3_BUCKET
+              value: "fproject-s3-1234567"
+            - name: AGENT_API_URL
+              value: "https://YOUR_API_DOMAIN/agent/image"
+            - name: OTEL_SERVICE_NAME
+              value: "image-generator-api"
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://jaeger-collector.istio-system.svc.cluster.local:4317"
+            - name: APP_VERSION
+              value: "1.0.0"
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 300m
+              memory: 512Mi
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 5

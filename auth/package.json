@@ -1,0 +1,44 @@
+{
+  "name": "fproject-backend",
+  "version": "1.0.0",
+  "description": "FProject 마이페이지 백엔드 API",
+  "type": "module",
+  "main": "server/index.ts",
+  "scripts": {
+    "dev": "tsx watch server/index.ts",
+    "start": "tsx server/index.ts",
+    "build": "tsc",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "@aws-sdk/client-cognito-identity-provider": "^3.958.0",
+    "@aws-sdk/client-s3": "^3.958.0",
+    "@opentelemetry/api": "^1.9.0",
+    "@opentelemetry/sdk-node": "^0.52.1",
+    "@opentelemetry/exporter-trace-otlp-grpc": "^0.52.1",
+    "@opentelemetry/instrumentation": "^0.52.1",
+    "@opentelemetry/instrumentation-http": "^0.52.1",
+    "@opentelemetry/instrumentation-express": "^0.41.1",
+    "@opentelemetry/instrumentation-pg": "^0.43.0",
+    "@opentelemetry/instrumentation-aws-sdk": "^0.43.1",
+    "@opentelemetry/resources": "^1.25.1",
+    "@opentelemetry/semantic-conventions": "^1.25.1",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "jwks-rsa": "^3.2.0",
+    "multer": "^1.4.5-lts.1",
+    "pg": "^8.16.3"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/multer": "^1.4.12",
+    "@types/node": "^22.16.5",
+    "@types/pg": "^8.16.0",
+    "tsx": "^4.21.0",
+    "typescript": "^5.8.3"
+  }
+}

@@ -1,0 +1,26 @@
+# 📁 최종 배포용: backend/requirements.txt
+# FastAPI 라이브러리 관리 시스템 - 백엔드 의존성
+
+# FastAPI 및 웹 서버
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+python-multipart==0.0.6
+
+# 데이터베이스
+sqlalchemy==2.0.23
+asyncpg==0.29.0
+psycopg2-binary==2.9.9
+
+# AWS S3
+boto3==1.34.0
+botocore==1.34.0
+
+# 인증 및 보안
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+python-decouple==3.8
+
+# 유틸리티
+pydantic==2.5.0
+pydantic-settings==2.1.0
+httpx==0.25.2
